@@ -16,7 +16,7 @@ class Singleflight {
     async do(key, fn) {
         const existing = this.doing.get(key);
         if (existing) {
-            return await existing;
+            return existing;
         }
         const promise = fn();
         this.doing.set(key, promise);
