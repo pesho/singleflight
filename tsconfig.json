@@ -1,0 +1,13 @@
+{
+    "extends": "@tsconfig/node22",
+    "compilerOptions": {
+        "baseUrl": "./src/",
+        "outDir": "./dist",
+        "paths": {
+            "@/*": ["./*"]
+        },
+        "strict": true,
+        "skipLibCheck": true,
+        "declaration": true
+    }
+}
