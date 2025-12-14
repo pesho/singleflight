@@ -1,6 +1,6 @@
 {
     "name": "@onestone/singleflight",
-    "version": "0.0.3",
+    "version": "1.0.0",
     "description": "Ensure only one execution is in-flight for a given key at a time",
     "main": "./dist/singleflight.js",
     "exports": "./dist/singleflight.js",
@@ -12,7 +12,9 @@
         "lint": "biome check",
         "test": "tsx --experimental-test-coverage --test 'src/**/*.test.ts'"
     },
-    "keywords": ["singleflight"],
+    "keywords": [
+        "singleflight"
+    ],
     "author": "Peter Petrov <onestone@gmail.com>",
     "license": "MIT",
     "homepage": "https://github.com/pesho/singleflight",
@@ -24,10 +26,10 @@
         "url": "https://github.com/pesho/singleflight/issues"
     },
     "devDependencies": {
-        "@biomejs/biome": "1.9.4",
-        "@tsconfig/node22": "22.0.0",
-        "@types/node": "22.13.4",
-        "tsx": "4.19.2",
-        "typescript": "5.7.3"
+        "@biomejs/biome": "2.3.8",
+        "@tsconfig/node24": "24.0.3",
+        "@types/node": "24.10.4",
+        "tsx": "4.21.0",
+        "typescript": "5.9.3"
     }
 }
