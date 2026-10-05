@@ -73,6 +73,12 @@ key as a different value (`NaN` and `Infinity` become `null`; `Map`, `Set` and m
 instances become `{}`) or throw (`BigInt`, circular structures). For such arguments, call `do()`
 with your own key.
 
+## Behavior
+
+- **Results and errors are shared.** Every caller waiting on a key gets the same value, or the same error, from a single execution. Objects are shared by reference, so if one caller mutates a result, the others see the change. Copy the result first if you need to modify it.
+- **Nothing is cached.** Once an execution settles, its key is cleared and the next call runs `fn` again. This applies to failures too, so a failed call can be retried right away.
+- **A call that never settles blocks its key.** Later calls with that key wait on it indefinitely. If `fn` can hang, give it a timeout, e.g. `fetch(url, { signal: AbortSignal.timeout(5000) })`.
+
 ## Features
 
 - 🔒 Prevents duplicate in-flight requests
