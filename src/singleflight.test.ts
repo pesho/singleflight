@@ -76,18 +76,18 @@ test("ensure Singleflight.do keeps an entry replaced by a re-entrant call", asyn
     let count = 0;
     const sf = new Singleflight();
     async function inner() {
-        await delay(50);
+        await delay(100);
         return "inner";
     }
     async function outer() {
         // Runs before outer's own entry is stored, so it starts separately and finishes first
         const p = sf.do("key", inner);
-        await delay(100);
+        await delay(300);
         await p;
         return "outer";
     }
     const p1 = sf.do("key", outer);
-    await delay(75); // inner has finished, outer is still in flight
+    await delay(200); // inner has finished, outer is still in flight
     const p2 = sf.do("key", async () => {
         ++count;
         return "late";
