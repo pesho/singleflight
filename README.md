@@ -67,6 +67,12 @@ The key is derived from `fn.name`, so different functions with the same name sha
 Anonymous functions (e.g. inline arrows) and bound functions are rejected with a `TypeError`.
 To use a method, wrap it in a uniquely named function, or call `do()` with an explicit key.
 
+Arguments are serialized with `JSON.stringify`, so they should be JSON-safe: strings, finite
+numbers, booleans, `null`, and arrays or plain objects of those. Other values can produce the same
+key as a different value (`NaN` and `Infinity` become `null`; `Map`, `Set` and many class
+instances become `{}`) or throw (`BigInt`, circular structures). For such arguments, call `do()`
+with your own key.
+
 ## Features
 
 - 🔒 Prevents duplicate in-flight requests
