@@ -16,9 +16,8 @@ class Singleflight {
      * @throws Any error that occurs during the function execution
      */
     async do<T>(key: KeyType, fn: Fn<T>): Promise<T> {
-        const existing = this.doing.get(key);
-        if (existing) {
-            return existing as Promise<T>;
+        if (this.doing.has(key)) {
+            return this.doing.get(key) as Promise<T>;
         }
         const promise = fn();
         this.doing.set(key, promise);
@@ -26,7 +25,10 @@ class Singleflight {
         try {
             result = await promise;
         } finally {
-            this.doing.delete(key);
+            // fn may have started another call for this key that replaced our entry
+            if (this.doing.get(key) === promise) {
+                this.doing.delete(key);
+            }
         }
         return result;
     }

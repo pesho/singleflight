@@ -71,3 +71,39 @@ test("ensure Singleflight.doAuto rejects anonymous and bound functions", async (
     assert.strictEqual(count, 0);
     assert.strictEqual(await sf.doAuto(named, 1), 2);
 });
+
+test("ensure Singleflight.do keeps an entry replaced by a re-entrant call", async () => {
+    let count = 0;
+    const sf = new Singleflight();
+    async function inner() {
+        await delay(50);
+        return "inner";
+    }
+    async function outer() {
+        // Runs before outer's own entry is stored, so it starts separately and finishes first
+        const p = sf.do("key", inner);
+        await delay(100);
+        await p;
+        return "outer";
+    }
+    const p1 = sf.do("key", outer);
+    await delay(75); // inner has finished, outer is still in flight
+    const p2 = sf.do("key", async () => {
+        ++count;
+        return "late";
+    });
+    assert.deepStrictEqual(await Promise.all([p1, p2]), ["outer", "outer"]);
+    assert.strictEqual(count, 0);
+});
+
+test("ensure Singleflight.do shares falsy results", async () => {
+    let count = 0;
+    // JavaScript callers can pass a function that returns a plain value
+    const zero = (() => {
+        ++count;
+        return 0;
+    }) as unknown as () => Promise<number>;
+    const sf = new Singleflight();
+    assert.deepStrictEqual(await Promise.all([sf.do("key", zero), sf.do("key", zero)]), [0, 0]);
+    assert.strictEqual(count, 1);
+});
