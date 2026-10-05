@@ -56,3 +56,18 @@ test("ensure Singleflight.doAuto works", { concurrency: true }, async () => {
     assert.deepStrictEqual(await Promise.all([p4, p5, p6]), ["122", "122", "122"]);
     assert.strictEqual(count, 2);
 });
+
+test("ensure Singleflight.doAuto rejects anonymous and bound functions", async () => {
+    let count = 0;
+    async function named(n: number) {
+        return ++count + n;
+    }
+    const sf = new Singleflight();
+    await assert.rejects(
+        sf.doAuto(async (n: number) => ++count + n, 1),
+        TypeError,
+    );
+    await assert.rejects(sf.doAuto(named.bind(null), 1), TypeError);
+    assert.strictEqual(count, 0);
+    assert.strictEqual(await sf.doAuto(named, 1), 2);
+});

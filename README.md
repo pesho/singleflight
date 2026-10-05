@@ -63,6 +63,10 @@ Executes a function and ensures only one execution is in-flight at a time, autom
 - `fn`: The async function to be executed
 - `args`: The arguments to pass to the function
 
+The key is derived from `fn.name`, so different functions with the same name share results.
+Anonymous functions (e.g. inline arrows) and bound functions are rejected with a `TypeError`.
+To use a method, wrap it in a uniquely named function, or call `do()` with an explicit key.
+
 ## Features
 
 - 🔒 Prevents duplicate in-flight requests

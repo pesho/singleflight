@@ -41,12 +41,18 @@ class Singleflight {
     /**
      * Executes a function and ensures only one execution is in-flight at a time, for a given
      * combination of function name and argument values.
+     * The key is derived from `fn.name`, so different functions with the same name share
+     * results. Anonymous and bound functions are rejected, since their names are not unique.
      * @param fn The function to be executed
      * @param args The arguments to be passed to the function
      * @returns A promise that resolves with the result of the function execution
+     * @throws TypeError if `fn` is anonymous or bound
      * @throws Any error that occurs during the function execution
      */
     async doAuto(fn, ...args) {
+        if (!fn.name || fn.name.startsWith("bound ")) {
+            throw new TypeError("doAuto needs a named, unbound function");
+        }
         const key = Singleflight.makeKey(fn, ...args);
         return await this.do(key, async () => {
             return await fn(...args);
