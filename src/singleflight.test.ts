@@ -6,7 +6,7 @@ function delay(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-test("ensure Singleflight.do works", { concurrency: true }, async () => {
+test("ensure Singleflight.do works", async () => {
     let count = 0;
     async function slowIncrement() {
         await delay(100);
@@ -27,7 +27,7 @@ test("ensure Singleflight.do works", { concurrency: true }, async () => {
     assert.strictEqual(count, 2);
 });
 
-test("ensure Singleflight.makeKey works", { concurrency: true }, async () => {
+test("ensure Singleflight.makeKey works", async () => {
     async function add(a: string, b: number) {
         return a + b;
     }
@@ -35,7 +35,7 @@ test("ensure Singleflight.makeKey works", { concurrency: true }, async () => {
     assert.strictEqual(key, 'add("1",2)');
 });
 
-test("ensure Singleflight.doAuto works", { concurrency: true }, async () => {
+test("ensure Singleflight.doAuto works", async () => {
     let count = 0;
     async function slowFn(a: string, b: number) {
         await delay(100);
@@ -106,4 +106,45 @@ test("ensure Singleflight.do shares falsy results", async () => {
     const sf = new Singleflight();
     assert.deepStrictEqual(await Promise.all([sf.do("key", zero), sf.do("key", zero)]), [0, 0]);
     assert.strictEqual(count, 1);
+});
+
+test("ensure Singleflight.do shares errors and doesn't cache them", async () => {
+    let count = 0;
+    async function slowFail() {
+        await delay(100);
+        throw new Error(`failure ${++count}`);
+    }
+    const sf = new Singleflight();
+    // Both callers get the same error from a single execution:
+    await Promise.all([
+        assert.rejects(sf.do("key", slowFail), { message: "failure 1" }),
+        assert.rejects(sf.do("key", slowFail), { message: "failure 1" }),
+    ]);
+    assert.strictEqual(count, 1);
+    // The next call runs again instead of getting the old error:
+    await assert.rejects(sf.do("key", slowFail), { message: "failure 2" });
+    assert.strictEqual(count, 2);
+});
+
+test("ensure Singleflight.do handles functions that throw synchronously", async () => {
+    const sf = new Singleflight();
+    const fail = (): Promise<number> => {
+        throw new Error("sync failure");
+    };
+    await assert.rejects(sf.do("key", fail), { message: "sync failure" });
+    assert.strictEqual(await sf.do("key", async () => 1), 1);
+});
+
+test("ensure Singleflight.do runs different keys independently", async () => {
+    let count = 0;
+    async function slowIncrement() {
+        await delay(100);
+        return ++count;
+    }
+    const sf = new Singleflight();
+    const p1 = sf.do("a", slowIncrement);
+    const p2 = sf.do("b", slowIncrement);
+    const p3 = sf.do("a", slowIncrement);
+    assert.deepStrictEqual(await Promise.all([p1, p2, p3]), [1, 2, 1]);
+    assert.strictEqual(count, 2);
 });
