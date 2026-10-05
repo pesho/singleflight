@@ -9,7 +9,8 @@
     },
     "types": "./dist/singleflight.d.ts",
     "files": [
-        "dist"
+        "dist",
+        "CHANGELOG.md"
     ],
     "scripts": {
         "build": "tsc",
