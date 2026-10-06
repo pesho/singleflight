@@ -148,3 +148,16 @@ test("ensure Singleflight.do runs different keys independently", async () => {
     assert.deepStrictEqual(await Promise.all([p1, p2, p3]), [1, 2, 1]);
     assert.strictEqual(count, 2);
 });
+
+test("ensure Singleflight.do doesn't keep entries for NaN results", async () => {
+    let count = 0;
+    // JavaScript callers can pass a function that returns a plain value
+    const nan = (() => {
+        ++count;
+        return Number.NaN;
+    }) as unknown as () => Promise<number>;
+    const sf = new Singleflight();
+    assert.ok(Number.isNaN(await sf.do("key", nan)));
+    assert.ok(Number.isNaN(await sf.do("key", nan)));
+    assert.strictEqual(count, 2);
+});

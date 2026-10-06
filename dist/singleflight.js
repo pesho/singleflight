@@ -17,7 +17,9 @@ class Singleflight {
         if (this.doing.has(key)) {
             return this.doing.get(key);
         }
-        const promise = fn();
+        // Wrap plain values from JavaScript callers (e.g. NaN, which doesn't equal itself), so
+        // the ownership check below always compares promises
+        const promise = Promise.resolve(fn());
         this.doing.set(key, promise);
         let result;
         try {
