@@ -14,23 +14,31 @@ class Singleflight {
      * @throws Any error that occurs during the function execution
      */
     async do(key, fn) {
-        const existing = this.doing.get(key);
-        if (existing) {
-            return existing;
+        if (this.doing.has(key)) {
+            return this.doing.get(key);
         }
-        const promise = fn();
+        // Wrap plain values from JavaScript callers (e.g. NaN, which doesn't equal itself), so
+        // the ownership check below always compares promises
+        const promise = Promise.resolve(fn());
         this.doing.set(key, promise);
         let result;
         try {
             result = await promise;
         }
         finally {
-            this.doing.delete(key);
+            // fn may have started another call for this key that replaced our entry
+            if (this.doing.get(key) === promise) {
+                this.doing.delete(key);
+            }
         }
         return result;
     }
     /**
-     * Generates a unique key for a function call based on the function name and its arguments.
+     * Generates a key for a function call based on the function name and its arguments.
+     * Arguments are serialized with JSON.stringify, so they should be JSON-safe: strings,
+     * finite numbers, booleans, null, and arrays or plain objects of those. Other values can
+     * map to the same key as a different value (NaN and Infinity become null; Map, Set and
+     * many class instances become {}) or throw (BigInt, circular structures).
      * @param fn The function to generate a key for
      * @param args The arguments passed to the function
      * @returns A string representation of the function call
@@ -41,12 +49,19 @@ class Singleflight {
     /**
      * Executes a function and ensures only one execution is in-flight at a time, for a given
      * combination of function name and argument values.
+     * The key is derived from `fn.name`, so different functions with the same name share
+     * results. Anonymous and bound functions are rejected, since their names are not unique.
+     * Arguments should be JSON-safe; see {@link Singleflight.makeKey}.
      * @param fn The function to be executed
      * @param args The arguments to be passed to the function
      * @returns A promise that resolves with the result of the function execution
+     * @throws TypeError if `fn` is anonymous or bound
      * @throws Any error that occurs during the function execution
      */
     async doAuto(fn, ...args) {
+        if (!fn.name || fn.name.startsWith("bound ")) {
+            throw new TypeError("doAuto needs a named, unbound function");
+        }
         const key = Singleflight.makeKey(fn, ...args);
         return await this.do(key, async () => {
             return await fn(...args);

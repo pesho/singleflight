@@ -63,6 +63,22 @@ Executes a function and ensures only one execution is in-flight at a time, autom
 - `fn`: The async function to be executed
 - `args`: The arguments to pass to the function
 
+The key is derived from `fn.name`, so different functions with the same name share results.
+Anonymous functions (e.g. inline arrows) and bound functions are rejected with a `TypeError`.
+To use a method, wrap it in a uniquely named function, or call `do()` with an explicit key.
+
+Arguments are serialized with `JSON.stringify`, so they should be JSON-safe: strings, finite
+numbers, booleans, `null`, and arrays or plain objects of those. Other values can produce the same
+key as a different value (`NaN` and `Infinity` become `null`; `Map`, `Set` and many class
+instances become `{}`) or throw (`BigInt`, circular structures). For such arguments, call `do()`
+with your own key.
+
+## Behavior
+
+- **Results and errors are shared.** Every caller waiting on a key gets the same value, or the same error, from a single execution. Objects are shared by reference, so if one caller mutates a result, the others see the change. Copy the result first if you need to modify it.
+- **Nothing is cached.** Once an execution settles, its key is cleared and the next call runs `fn` again. This applies to failures too, so a failed call can be retried right away.
+- **A call that never settles blocks its key.** Later calls with that key wait on it indefinitely. If `fn` can hang, give it a timeout, e.g. `fetch(url, { signal: AbortSignal.timeout(5000) })`.
+
 ## Features
 
 - 🔒 Prevents duplicate in-flight requests

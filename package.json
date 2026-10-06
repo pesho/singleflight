@@ -3,14 +3,22 @@
     "version": "1.0.0",
     "description": "Ensure only one execution is in-flight for a given key at a time",
     "main": "./dist/singleflight.js",
-    "exports": "./dist/singleflight.js",
+    "exports": {
+        ".": "./dist/singleflight.js",
+        "./package.json": "./package.json"
+    },
     "types": "./dist/singleflight.d.ts",
+    "files": [
+        "dist",
+        "CHANGELOG.md"
+    ],
     "scripts": {
         "build": "tsc",
         "clean": "rm -rf dist",
         "check-types": "tsc --noEmit",
         "lint": "biome check",
-        "test": "tsx --experimental-test-coverage --test 'src/**/*.test.ts'"
+        "test": "tsx --experimental-test-coverage --test 'src/**/*.test.ts'",
+        "prepublishOnly": "pnpm clean && pnpm build"
     },
     "keywords": [
         "singleflight"
@@ -20,7 +28,7 @@
     "homepage": "https://github.com/pesho/singleflight",
     "repository": {
         "type": "git",
-        "url": "git@github.com:pesho/singleflight.git"
+        "url": "git+https://github.com/pesho/singleflight.git"
     },
     "bugs": {
         "url": "https://github.com/pesho/singleflight/issues"
