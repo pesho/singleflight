@@ -1,6 +1,6 @@
 {
     "name": "@onestone/singleflight",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Ensure only one execution is in-flight for a given key at a time",
     "main": "./dist/singleflight.js",
     "exports": {

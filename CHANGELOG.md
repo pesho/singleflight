@@ -7,13 +7,15 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-06
+
 ### Added
 
 - `@onestone/singleflight/package.json` can be imported.
 
 ### Changed
 
-- **Breaking:** `doAuto` rejects anonymous functions (such as inline arrows) and bound functions with a `TypeError`. Their names aren't unique, so unrelated calls with the same arguments could receive each other's results. Pass a uniquely named function instead, or call `do()` with an explicit key.
+- `doAuto` now rejects anonymous functions (such as inline arrows) and bound functions with a `TypeError`. Their names aren't unique, so unrelated calls with the same arguments could receive each other's results. If you pass one of these, pass a uniquely named function instead, or call `do()` with an explicit key.
 
 ### Removed
 
@@ -28,5 +30,6 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 First stable release.
 
-[Unreleased]: https://github.com/pesho/singleflight/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/pesho/singleflight/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/pesho/singleflight/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/pesho/singleflight/releases/tag/v1.0.0
